@@ -1,4 +1,4 @@
-# {{ project_name }}
+# Access Couchdb Application VERSON 2
 
 ## Getting Started
 

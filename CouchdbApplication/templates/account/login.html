@@ -45,6 +45,16 @@
 				border: 1px solid #ccc;
 				border-radius: 4px;
 			}
+			.errors {
+				color: red
+			}
+			.errors ul {
+				margin-left: 0px;
+				padding-left: 0px;
+				list-style: none;
+				background-color: pink;
+				margin-bottom: 5px!important;
+			}
 		</style>
 	</head>
 	<body class="{% block body_class %}{% endblock %}" id="{% block body_id %}{% endblock %}">
@@ -61,43 +71,58 @@
 									<div class="panel-body" style="margin-top: 5px">
 										<form class="" method="POST" action="{% url 'account_login' %}">
 											{% csrf_token %}
-											{{ form.non_field_errors }}
-{#											<table style="margin: 0 auto; padding: 0 auto; margin-top: 0px">#}
-{#												<tbody>#}
-{#													<tr>#}
-{#														<th style="font-size: 13px">User name: </th>#}
-{#														<td class="col-md-10">#}
-{#															<label class="block clearfix" style="width: 100%!important">#}
-{#																<span class="block input-icon input-icon-right">#}
-{#																	<input autofocus="autofocus" id="id_login" name="login" placeholder="Username..." type="text" class="form-control">#}
-{#																	<i class="icon-user"></i>#}
-{#																</span>#}
-{#															</label>#}
-{#														</td>#}
-{#													</tr>#}
-{#													<tr height="60px">#}
-{#														<th style="font-size: 13px">Password: </th>#}
-{#														<td class="col-md-10">#}
-{#															<label class="block clearfix" style="width: 100%!important">#}
-{#																<span class="block input-icon input-icon-right">#}
-{#																	<input id="id_password" name="password" type="password" placeholder="Password..." class="form-control">#}
-{#																	<i class="icon-lock"></i>#}
-{#																</span>#}
-{#															</label>#}
-{#														</td>#}
-{#													</tr>#}
-{#													<tr>#}
-{#														<th></th>#}
-{#														<td>#}
-{#															<label class="inline" style="font-size: 13px; margin-left: 15px">#}
-{#																<input id="id_remember" name="remember" class="ace" type="checkbox">#}
-{#																<span class="lbl"> Remember me</span>#}
-{#															</label>#}
-{#														</td>#}
-{#													</tr>#}
-{#												</tbody>#}
-{#											</table>#}
-											{{ form }}
+											{% if form.non_field_errors %}
+												<span class="errors">
+													{{ form.non_field_errors }}
+												</span>
+											{% endif %}
+											<table style="margin: 0 auto; padding: 0 auto; margin-top: 0px">
+												<tbody>
+													<tr>
+														<th style="font-size: 13px">User name: </th>
+														<td class="col-md-10">
+															<label class="block clearfix" style="width: 100%!important">
+																<span class="block input-icon input-icon-right">
+																	{% if form.login.errors %}
+																		<span class="errors">
+																			{{ form.login.errors }}
+																		</span>
+																	{% endif %}
+																	<input autofocus="autofocus" id="id_login" name="login" placeholder="Username..." type="text" class="form-control">
+																	<i class="icon-user"></i>
+																</span>
+															</label>
+														</td>
+													</tr>
+													<tr height="60px">
+														<th style="font-size: 13px">Password: </th>
+														<td class="col-md-10">
+															<label class="block clearfix" style="width: 100%!important">
+																<span class="block input-icon input-icon-right">
+																	{% if form.password.errors %}
+																		<span class="errors"
+																		      style="margin-top:20px">
+																			{{ form.password.errors }}
+																		</span>
+																	{% endif %}
+																	<input id="id_password" name="password" type="password" placeholder="Password..." class="form-control">
+																	<i class="icon-lock"></i>
+																</span>
+															</label>
+														</td>
+													</tr>
+													<tr>
+														<th></th>
+														<td>
+															<label class="inline" style="font-size: 13px; margin-left: 15px">
+																<input id="id_remember" name="remember" class="ace" type="checkbox">
+																<span class="lbl"> Remember me</span>
+															</label>
+														</td>
+													</tr>
+												</tbody>
+											</table>
+{#											{{ form }}#}
 											<center>
 												<div class="clearfix" style="margin-top: 10px">
 													<button style="width: 130px" class="btn btn-sm btn-primary primaryAction" type="submit" style="border-radius:5px">Sign in</button>

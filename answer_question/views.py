@@ -11,6 +11,7 @@ from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormView
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import HttpResponse
+from django.contrib.auth.decorators import login_required
 
 from answer_question import couch_server as pycouchdb
 from couch_server import MESSAGE
@@ -453,3 +454,6 @@ def remove_code(request):
 			# messages.add_message(request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
 			return HttpResponse(status=500)
 		return HttpResponse(status=200)
+
+
+list_answer_question = login_required(ListQA.as_view(), login_url="/login")

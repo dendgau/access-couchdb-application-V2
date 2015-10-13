@@ -115,7 +115,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 	"django.core.context_processors.request",
 	"django.contrib.messages.context_processors.messages",
 	"pinax_theme_bootstrap.context_processors.theme",
-	"allauth.account.context_processors.account",
+	# "allauth.account.context_processors.account",
 ]
 
 AUTHENTICATION_BACKENDS = (

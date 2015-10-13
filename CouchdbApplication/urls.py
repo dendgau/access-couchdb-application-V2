@@ -5,11 +5,12 @@ import allauth.account.views as account
 
 urlpatterns = patterns(
 	"",
-	url(r'^accounts/', include('allauth.urls')),
+	url(r'^login', account.LoginView.as_view(), name="account_login"),
+	url(r'^logout', account.LogoutView.as_view(), name="account_logout"),
 	# MANGE ANSWER QUESTION
 	url(
 		r"^$",
-		views.ListQA.as_view(),
+		views.list_answer_question,
 		name="home"
 	),
 	url(

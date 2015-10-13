@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% load i18n %}
+{% load url from future %}
+
+{% block body_class %}home{% endblock %}
+
+{% block body_base %}
+	<div class="row">
+		<form class="answer-question-form" method="POST" action="/add_answer_question">
+			{% csrf_token %}
+			<div class="col-md-12" style="padding-left: 0px; padding-right: 0px">
+				<div class="form-group col-md-12">
+					<label>Question</label>
+					<input type="text" class="form-control" name="question" placeholder="Question...">
+				</div>
+				<div class="form-group col-md-6 col-sm-12">
+					<label>Choose type question</label>
+					<select class="form-control" name="categories">
+						<option value="">--- Select category ---</option>
+						{% for category in categories %}
+							<option value="{{ category.id }}">{{ category.value.name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group col-md-12">
+					<label>Type answer</label>
+					<ul class="nav nav-pills nav-justified choose-type-answer">
+						<li class="active"><a class="type-answer" href="#" id="type-answer-01">Radio</a></li>
+						<li><a class="type-answer" href="#" id="type-answer-02">Check</a></li>
+						<li><a class="type-answer" href="#" id="type-answer-03">Seek</a></li>
+					</ul>
+					<input name="type-answers" type="hidden" value="01">
+				</div>
+				<div class="form-group answers col-md-12">
+					<label>Answers</label>
+					<input name="answer" type="text" class="form-control answer-detail" placeholder="Input answer here...">
+					<input name="answer" type="text" class="form-control answer-detail" placeholder="Input answer here...">
+				</div>
+				<div class="form-group col-md-12">
+					<button class="btn btn-primary pull-right" id="submit"><i class="glyphicon glyphicon-arrow-up"></i> Submit</button>
+					<span id="loading_edit" style="display: none; margin-right: 10px" class="pull-right">
+						<img width="30px" style="margin-top: -2px; margin-top: 2px" src="{% static 'bootstrap/img/loading.gif' %}">
+					</span>
+					<a href="{% url 'home' %}" style="margin-right: 5px" type="button" class="btn btn-default pull-left"><i class="glyphicon glyphicon-arrow-left"></i> Back to list</a>
+				</div>
+			</div>
+		</form>
+	</div>
+{% endblock %}
+
+{% block extra_script %}
+	<script>
+		var currentValue = "", existValue = false, currentTypeAnswer = "01"
+
+		$("body").on("click", ".type-answer", function(){
+			var liParent = $(this).parent("li"),
+				answers = $(".answer-detail"),
+				typeAnswersId = ($(this).attr("id")).split("-")[2];
+
+			$("input[name='type-answers']").val(typeAnswersId);
+			$(".choose-type-answer li").removeClass("active");
+			liParent.addClass("active");
+
+			if (currentTypeAnswer == "03" && typeAnswersId != "03") {
+				$(_createAnswerDetail()).appendTo($(".answers"));
+				$(_createAnswerDetail()).appendTo($(".answers"));
+				$(".answers").show();
+			} else if (currentTypeAnswer != "03" && typeAnswersId == "03") {
+				$(".answers").hide();
+				for (var i = answers.length - 1; i >= 0; i--) {
+					answers[i].remove();
+				}
+			}
+			currentTypeAnswer = typeAnswersId;
+
+			return false;
+		});
+
+		$("body").on("blur", ".answer-detail", function(){
+			var answers = $(".answer-detail"),
+				valueAnswerDetail = $(this).val();
+
+			if (currentValue !== valueAnswerDetail) {
+				if (valueAnswerDetail && !existValue) {
+					$(_createAnswerDetail()).appendTo($(".answers"));
+					fixPositionFooter();
+				} else if (!valueAnswerDetail && answers.length > 2) {
+					for (var i = answers.length - 1; i >= 0; i--) {
+						if (answers[i]["value"] === "") {
+							answers[i].remove();
+							fixPositionFooter();
+							break;
+						}
+					}
+				}
+			}
+
+			currentValue = ""
+			existValue = false;
+
+			return false;
+		});
+
+		$("body").on("focus", ".answer-detail", function(){
+			currentValue = $(this).val();
+			existValue = (currentValue) ? true:false
+			return false;
+		});
+
+		function _createAnswerDetail() {
+			return '<input type="text" name="answer" class="form-control answer-detail" placeholder="Input answer here...">';
+		}
+
+		$("#submit").click(function(){
+			if (!$("input[name='question']").val()) {
+				alert("ERROR: You have not input question. Please try again")
+				return false;
+			}
+
+			if (currentTypeAnswer !== "03") {
+				var countAnswer = 0, answers = $(".answer-detail");
+				for (var i = answers.length - 1; i >= 0; i--) {
+					if (answers[i]["value"]) {
+						countAnswer += 1
+					}
+				}
+				if (countAnswer < 2 && currentTypeAnswer === "01") {
+					alert("ERROR: The number of answer must be more than 1. Please try again");
+					return false;
+				}
+
+				if (countAnswer < 1 && currentTypeAnswer === "02") {
+					alert("ERROR: The number of answer must be more than 0. Please try again");
+					return false;
+				}
+			}
+			$("#loading_edit").show();
+			$("#submit").addClass("disabled");
+			$(".answer-question-form").submit();
+		});
+	</script>
+{% endblock %}

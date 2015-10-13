@@ -1,0 +1,15 @@
+{% load pinax_theme_bootstrap_tags %}
+{% if messages %}
+	{% for message in messages %}
+		<div class="alert fade in {% get_message_tags message %}" style="margin-bottom: 10px!important">
+			<!--<button type="button" class="close" data-dismiss="alert">&times;</button>-->
+			{% if 'error' in message.tags %}
+				<i class='icon-exclamation-sign red'></i> {{ message }}
+			{% elif 'warning' in message.tags %}
+				<i class='icon-warning-sign orange'></i> {{ message }}
+			{% elif 'success' in message.tags %}
+				<i class='glyphicon glyphicon-hand-right green'></i> {{ message }}
+			{% endif %}
+		</div>
+	{% endfor %}
+{% endif %}

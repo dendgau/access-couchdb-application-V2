@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% load i18n %}
+{% load url from future %}
+
+{% block body_class %}home{% endblock %}
+
+{% block body_base %}
+	<div class="row">
+		<form class="category-form" method="POST" action="{{ request.path }}">
+			{% csrf_token %}
+			<div class="col-md-12" style="padding-left: 0px; padding-right: 0px">
+				<div class="form-group col-md-12">
+					<label>Category name</label>
+					<input type="text" class="form-control" name="category_name" placeholder="Category name...">
+				</div>
+				<div class="form-group col-md-12">
+					<button class="btn btn-primary pull-right" id="submit"><i class="glyphicon glyphicon-arrow-up"></i> Submit</button>
+					<span id="loading_edit" style="display: none; margin-right: 10px" class="pull-right">
+						<img width="30px" style="margin-top: -2px; margin-top: 2px" src="{% static 'bootstrap/img/loading.gif' %}">
+					</span>
+					<a href="{% url 'list_category' %}" style="margin-right: 5px" type="button" class="btn btn-default pull-left"><i class="glyphicon glyphicon-arrow-left"></i> Back to list</a>
+				</div>
+			</div>
+		</form>
+	</div>
+{% endblock %}
+
+{% block extra_script %}
+	<script>
+		$("#submit").click(function(){
+			$("#loading_edit").show();
+			$("#submit").addClass("disabled");
+			$(".category-form").submit();
+		});
+	</script>
+{% endblock %}

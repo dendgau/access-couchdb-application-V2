@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% load i18n %}
+{% load url from future %}
+
+{% block head_title %}pinax-project-zero{% endblock %}
+
+{% block body_class %}home{% endblock %}
+
+{% block body_base %}
+	<div class="row">
+		<div class="col-md-12">
+			<a class="btn btn-primary" href="{% url 'add_category' %}"><i class="glyphicon glyphicon-plus-sign"></i> Create category</a>
+			<a class="btn btn-default" href="{{ request.path }}"><i class="glyphicon glyphicon-refresh"></i> Refesh</a>
+			{% if object_list %}
+				<div class=".table-responsive" style="margin-top: 10px">
+					<table class="table table-bordered" style="margin-bottom: 0px">
+						<thead>
+							<tr>
+								<th>Category name</th>
+								<th style="text-align: center">Modify</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for q in object_list %}
+								<tr id="row_category_{{ q.id }}">
+									<td>{{ q.value.name }}</td>
+									<td style="text-align: center" class="col-md-1 col-sm-2">
+										<a id="edit_category_{{ q.id }}" class="edit-category" type="button" class="" href="/edit_category/{{ q.id }}" title="Edit"><i class="glyphicon glyphicon-pencil"></i></a>
+										<a id="remove_category_{{ q.id }}" class="remove-category" type="button" class="" href="#" title="Remove"><i class="glyphicon glyphicon-trash"></i></a>
+										<span id="loading_category_{{ q.id }}" style="display: none">
+											<img width="16px" style="margin-top: -2px" src="{% static 'bootstrap/img/loading.gif' %}">
+										</span>
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{% if is_paginated %}
+						<div class="pagination pull-right">
+							<span class="page-links">
+								{% if page_obj.has_previous %}
+									<a href="?page={{ page_obj.previous_page_number }}">previous</a>
+								{% endif %}
+								<span class="page-current">
+									Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+								</span>
+								{% if page_obj.has_next %}
+									<a href="?page={{ page_obj.next_page_number }}">next</a>
+								{% endif %}
+							</span>
+						</div>
+					{% endif %}
+				</div>
+			{% else %}
+				<div class="alert alert-info" role="alert" style="margin-bottom: 0px; margin-top: 10px">
+					There are not any category in list
+				</div>
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}
+
+{% block extra_script %}
+	<script>
+		$(".remove-category").click(function(){
+			if (confirm("Do you want to remove this category?")) {
+				var categoryId = ($(this).attr("id")).split("_")[2];
+				$("#edit_category_" + categoryId).hide();
+				$("#remove_category_" + categoryId).hide();
+				$("#loading_category_" + categoryId).show();
+				$.ajax({
+					url: "remove_category",
+					type: "POST",
+					data: {
+						"categoryId": categoryId,
+					},
+					success: function (data) {
+						$("#row_category_"+categoryId).fadeOut(function() {
+							$("#row_category_"+categoryId).remove();
+						});
+						fixPositionFooter();
+					},
+					error: function (error) {
+						alert("Can not remove. Please try again");
+						$("#edit_category_" + categoryId).show()
+						$("#remove_category_" + categoryId).show();
+						$("#loading_category_" + categoryId).hide();
+					}
+				});
+			}
+			return false;
+		});
+	</script>
+{% endblock %}

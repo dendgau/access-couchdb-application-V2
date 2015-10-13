@@ -1,0 +1,125 @@
+{% load staticfiles %}
+{% load url from future %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+	<head>
+		<meta charset="utf-8" />
+		<title>Server CouchDB</title>
+		{% block viewport %}
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		{% endblock %}
+
+		{% block style_base %}
+			<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+			<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+			{% block extra_style %}{% endblock %}
+		{% endblock %}
+
+		{% block extra_head_base %}
+			{% block extra_head %}{% endblock %}
+		{% endblock %}
+
+		<style>
+			html, body {
+				height: 100%;
+			}
+			body {
+				background: url({% static "bootstrap/img/linen.jpg" %}) repeat
+			}
+			label {
+				font-weight: normal;
+				font-size: 11px;
+			}
+			.form-control {
+				display: block;
+				width: 100%;
+				height: 34px;
+				padding: 6px 12px;
+				font-size: 13px;
+				line-height: 1.42857143;
+				color: #555;
+				background-color: #fff;
+				background-image: none;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+			}
+		</style>
+	</head>
+	<body class="{% block body_class %}{% endblock %}" id="{% block body_id %}{% endblock %}">
+		<div class="main-container" style="margin-left: 0px">
+			<div class="main-content" style="margin-left: 0px">
+				<div class="row">
+					<div class="col-sm-4 col-sm-offset-4">
+						<fieldset>
+							<div class="login-container" style="box-shadow: 1px 1px 7px #727272; margin-top: 20px">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<center>Web Application For Survey</center>
+									</div>
+									<div class="panel-body" style="margin-top: 5px">
+										<form class="" method="POST" action="{% url 'account_login' %}">
+											{% csrf_token %}
+											{{ form.non_field_errors }}
+{#											<table style="margin: 0 auto; padding: 0 auto; margin-top: 0px">#}
+{#												<tbody>#}
+{#													<tr>#}
+{#														<th style="font-size: 13px">User name: </th>#}
+{#														<td class="col-md-10">#}
+{#															<label class="block clearfix" style="width: 100%!important">#}
+{#																<span class="block input-icon input-icon-right">#}
+{#																	<input autofocus="autofocus" id="id_login" name="login" placeholder="Username..." type="text" class="form-control">#}
+{#																	<i class="icon-user"></i>#}
+{#																</span>#}
+{#															</label>#}
+{#														</td>#}
+{#													</tr>#}
+{#													<tr height="60px">#}
+{#														<th style="font-size: 13px">Password: </th>#}
+{#														<td class="col-md-10">#}
+{#															<label class="block clearfix" style="width: 100%!important">#}
+{#																<span class="block input-icon input-icon-right">#}
+{#																	<input id="id_password" name="password" type="password" placeholder="Password..." class="form-control">#}
+{#																	<i class="icon-lock"></i>#}
+{#																</span>#}
+{#															</label>#}
+{#														</td>#}
+{#													</tr>#}
+{#													<tr>#}
+{#														<th></th>#}
+{#														<td>#}
+{#															<label class="inline" style="font-size: 13px; margin-left: 15px">#}
+{#																<input id="id_remember" name="remember" class="ace" type="checkbox">#}
+{#																<span class="lbl"> Remember me</span>#}
+{#															</label>#}
+{#														</td>#}
+{#													</tr>#}
+{#												</tbody>#}
+{#											</table>#}
+											{{ form }}
+											<center>
+												<div class="clearfix" style="margin-top: 10px">
+													<button style="width: 130px" class="btn btn-sm btn-primary primaryAction" type="submit" style="border-radius:5px">Sign in</button>
+												</div>
+											</center>
+										</form>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% block script_base %}
+			<script src="{% block jquery_src %}{% static "jquery/js/jquery-2.1.4.min.js" %}{% endblock %}"></script>
+			<script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+			{% block extra_script %}{% endblock %}
+		{% endblock %}
+
+		{% block extra_body_base %}
+			{% block extra_body %}{% endblock %}
+		{% endblock %}
+	</body>
+</html>

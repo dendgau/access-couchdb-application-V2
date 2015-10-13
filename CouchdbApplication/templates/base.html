@@ -1,0 +1,97 @@
+{% load staticfiles %}
+{% load url from future %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+	<head>
+		<meta charset="utf-8" />
+		<title>Server CouchDB</title>
+		{% block viewport %}
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		{% endblock %}
+
+		{% block style_base %}
+		<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+		{% block extra_style %}{% endblock %}
+		{% endblock %}
+
+		{% block extra_head_base %}
+		{% block extra_head %}{% endblock %}
+		{% endblock %}
+
+		<style>
+			html, body {
+				height: 100%;
+			}
+			body {
+				background: url({% static "bootstrap/img/linen.jpg" %}) repeat
+			}
+			.content {
+				background-color: white;
+				padding-top: 15px;
+				padding-bottom: 15px;
+				border-radius: 4px;
+				box-shadow: 1px 1px 7px #727272
+			}
+			.type-answer {
+				background-color: #EEEEEE;
+				border-radius: 0px!important
+			}
+			ul.choose-type-answer li {
+				padding-right: 3px;
+			}
+			.answer-detail {
+				margin-bottom: 12px;
+			}
+		</style>
+	</head>
+	<body class="{% block body_class %}{% endblock %}" id="{% block body_id %}{% endblock %}">
+		<div class="{% block wrapper_class %}{% endblock %} child-body" style="position: relative; min-height: 100%">
+
+			{% block topbar_base %}
+				<header id="header">
+					{% block header %}
+						{% include "_header.html" %}
+					{% endblock %}
+				</header>
+			{% endblock %}
+
+			<div id="content" class="container content" style="margin-bottom: 20px">
+				{% include "_messages_common.html" %}
+				{% block body_base %}
+				{% endblock %}
+			</div>
+
+			{% block endbar_base %}
+				<footer id="footer" style="width: 100%; position: absolute; bottom: -169px">
+					{% block footer %}
+						{% include "_footer.html" %}
+					{% endblock %}
+				</footer>
+			{% endblock %}
+
+		</div>
+
+		{% block script_base %}
+			<script src="{% block jquery_src %}{% static "jquery/js/jquery-2.1.4.min.js" %}{% endblock %}"></script>
+			<script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+			<script>
+				function fixPositionFooter() {
+					if ($(window).height() - 169 > $("#content").height() + $("#header").height() + 20) {
+						$("#footer").css("bottom", "0px");
+					} else {
+						$("#footer").css("bottom", "-169px");
+					}
+				}
+				fixPositionFooter();
+			</script>
+			{% block extra_script %}{% endblock %}
+		{% endblock %}
+
+		{% block extra_body_base %}
+		{% block extra_body %}{% endblock %}
+		{% endblock %}
+	</body>
+</html>

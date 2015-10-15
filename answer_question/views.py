@@ -275,6 +275,101 @@ class CategoryEdit(FormView):
 		return super(CategoryEdit, self).form_invalid(form)
 
 
+class ListCode(ListView):
+	paginate_by = 20
+	template_name = "code/list_code.html"
+
+	def get_queryset(self):
+		queryset = []
+
+		try:
+			connection = pycouchdb.ConnectCouchdb()
+			codes = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "code"))
+
+			for c in codes:
+				try:
+					username = connection.get_doc(c["value"]["user_id"])
+					name = username["name"]
+				except Exception, e:
+					logging.error(str(e))
+					name = "Undefined"
+				c["value"].update({"username": name})
+
+			queryset = codes
+		except Exception, e:
+			logging.error(str(e))
+			messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
+
+		return queryset
+
+
+class QACodeAdd(TemplateView, JSONResponseMixin):
+	template_name = "code/add_code.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(QACodeAdd, self).get_context_data(**kwargs)
+		try:
+			connection = pycouchdb.ConnectCouchdb()
+			members = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "member"))
+			questions = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "question"))
+		except Exception, e:
+			logging.error(str(e))
+			messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
+			return context
+
+		context["members"] = members
+		context["questions"] = questions
+		return context
+
+	def post(self, request, *args, **kwargs):
+		if request.method == 'POST':
+			try:
+				connection = pycouchdb.ConnectCouchdb()
+			except Exception, e:
+				logging.error(str(e))
+				messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
+				return HttpResponse(status=500)
+
+			import time
+			hour_now = ((time.mktime(datetime.datetime.now().timetuple()))/3600)/3600
+
+			for member in filter(None, request.POST.getlist('member_select')):
+				connection.save_doc({
+					"table": "code",
+					"user_id": member,
+					"name": request.POST.get("code_name", None),
+					"point": int(request.POST.get("point", None)),
+					"time": int(request.POST.get("duration", None)) + hour_now,
+					"question_id": filter(None, request.POST.getlist('question_select')),
+					"date": (datetime.datetime.now()).strftime("%d-%m-%Y"),
+					"status": "0"
+				})
+
+		return HttpResponseRedirect('/list_code')
+
+
+class QACodeDetail(TemplateView, JSONResponseMixin):
+	template_name = "code/edit_code.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(QACodeDetail, self).get_context_data(**kwargs)
+		try:
+			connection = pycouchdb.ConnectCouchdb()
+			doc_code = connection.get_doc(kwargs.get("code_id", None))
+			doc_code.update({"id": kwargs.get("code_id", None)})
+			doc_member = connection.get_doc(doc_code["user_id"])
+			questions = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "question"))
+		except Exception, e:
+			logging.error(str(e))
+			messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
+			return context
+
+		context["doc_code"] = doc_code
+		context["doc_member"] = doc_member
+		context["questions"] = questions
+		return context
+
+
 @csrf_exempt
 def remove_category(request):
 	if request.method == 'POST':
@@ -337,111 +432,6 @@ def remove_answer_question(request):
 		# messages.add_message(request, messages.SUCCESS, MESSAGE['DELETE_SUCCESS'])
 		return HttpResponse(status=200)
 
-
-class ListCode(ListView):
-	paginate_by = 20
-	template_name = "code/list_code.html"
-
-	def get_queryset(self):
-		queryset = []
-
-		try:
-			connection = pycouchdb.ConnectCouchdb()
-			codes = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "code"))
-			for c in codes:
-				username = connection.get_doc(c["value"]["user_id"])
-				c["value"].update({"username": username["name"]})
-			queryset = codes
-		except Exception, e:
-			logging.error(str(e))
-			messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
-
-		return queryset
-
-
-class QACodeAdd(TemplateView, JSONResponseMixin):
-	template_name = "code/add_code.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(QACodeAdd, self).get_context_data(**kwargs)
-		try:
-			connection = pycouchdb.ConnectCouchdb()
-			members = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "member"))
-			questions = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "question"))
-		except Exception, e:
-			logging.error(str(e))
-			messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
-			return context
-
-		context["members"] = members
-		context["questions"] = questions
-		return context
-
-	def post(self, request, *args, **kwargs):
-		if request.method == 'POST':
-			try:
-				connection = pycouchdb.ConnectCouchdb()
-			except Exception, e:
-				logging.error(str(e))
-				messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
-				return HttpResponse(status=500)
-
-			_doc_code = {
-				"table": "code",
-				"name": request.POST.get("code_name", None),
-				"point": int(request.POST.get("point", None)),
-				"time": int(request.POST.get("duration", None)),
-				"user_id": request.POST.get("member_id", None),
-				"question_id": filter(None, request.POST.getlist('question_select')),
-				"date": (datetime.datetime.now()).strftime("%d-%m-%Y"),
-				"status": "0"}
-			doc_code = connection.save_doc(_doc_code)
-
-		return HttpResponseRedirect('/edit_code/%s' % doc_code["_id"])
-
-
-class QACodeDetail(TemplateView, JSONResponseMixin):
-	template_name = "code/edit_code.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(QACodeDetail, self).get_context_data(**kwargs)
-		try:
-			connection = pycouchdb.ConnectCouchdb()
-			doc_code = connection.get_doc(kwargs.get("code_id", None))
-			doc_code.update({"id": kwargs.get("code_id", None)})
-			doc_member = connection.get_doc(doc_code["user_id"])
-			questions = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "question"))
-		except Exception, e:
-			logging.error(str(e))
-			messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
-			return context
-
-		context["doc_code"] = doc_code
-		context["doc_member"] = doc_member
-		context["questions"] = questions
-		return context
-
-	def post(self, request, *args, **kwargs):
-		if request.method == 'POST':
-			try:
-				connection = pycouchdb.ConnectCouchdb()
-				doc_code = connection.get_doc(kwargs.get("code_id", None))
-			except Exception, e:
-				logging.error(str(e))
-				messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
-				return HttpResponse(status=500)
-
-			doc_code.update({
-				"table": "code",
-				"name": request.POST.get("code_name", None),
-				"time": int(request.POST.get("duration", None)),
-				"point": int(request.POST.get("point", None)),
-				"question_id": filter(None, request.POST.getlist('question_select')),
-				"date": (datetime.datetime.now()).strftime("%d-%m-%Y")})
-			doc_code = connection.save_doc(doc_code)
-
-		return HttpResponseRedirect('/edit_code/%s' % doc_code["_id"])
-
 @csrf_exempt
 def remove_code(request):
 	if request.method == 'POST':
@@ -456,4 +446,36 @@ def remove_code(request):
 		return HttpResponse(status=200)
 
 
+# For answer question
+
 list_answer_question = login_required(ListQA.as_view(), login_url="/login")
+
+add_answer_question = login_required(QAAdd.as_view(), login_url="/login")
+
+edit_answer_question = login_required(QADetail.as_view(), login_url="/login")
+
+_remove_answer_question = login_required(remove_answer_question, login_url="/login")
+
+# For category
+
+list_category = login_required(ListCategory.as_view(), login_url="/login")
+
+add_category = login_required(CategoryAdd.as_view(), login_url="/login")
+
+edit_category = login_required(CategoryEdit.as_view(), login_url="/login")
+
+_remove_category = login_required(remove_category, login_url="/login")
+
+# For private code
+
+list_code = login_required(ListCode.as_view(), login_url="/login")
+
+add_code = login_required(QACodeAdd.as_view(), login_url="/login")
+
+edit_code = login_required(QACodeDetail.as_view(), login_url="/login")
+
+_remove_code = login_required(remove_code, login_url="/login")
+
+# For private code
+
+_remove_answer = login_required(remove_answer, login_url="/login")

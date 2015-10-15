@@ -27,6 +27,7 @@
 					<label>Member</label>
 					<input id="search_member" type="text" placeholder="Member" class="nav-search-input form-control" name="search_member" autocomplete="off" data-provide="typeahead" data-items="10">
 					<input type="hidden" name="member_id">
+					<div id="member_selected" class="col-md-12" style="padding: 0px"></div>
 				</div>
 				<div class="form-group col-md-6">
 					<label>Questions</label>
@@ -71,12 +72,13 @@
 		$('#search_member').typeahead({
 			source:  members,
 			updater: function(item){
-				$("input[name='member_id']").val(item.id);
-				return item;
+				if ($("#detail_member_selected_"+item.id).length <= 0){
+					$(_createMemberDetail(item)).appendTo($("#member_selected"));
+					fixPositionFooter();
+				}
+				return "";
 			}
-		}).on("keydown", function(e){
-			$("input[name='member_id']").val("");
-		})
+		});
 
 		function _createQuestionDetail(item) {
 			var html = ""
@@ -87,10 +89,28 @@
 			return html;
 		}
 
+		function _createMemberDetail(item) {
+			var html = ""
+			html += '<span id="detail_member_selected_'+item.id+'" class="detail_member_selected col-md-12" style="margin-top:10px; padding: 0px">';
+			html += '<span><strong>Member:</strong> '+item.name+'</span> <a id="remove_member_'+item.id+'" class="remove-member" type="button" href="#" title="Remove"><i class="glyphicon glyphicon-trash"></i></a>'
+			html += '<input type="hidden" name="member_select" class="form-control member_select" value="'+item.id+'">';
+			html += '</span>';
+			return html;
+		}
+
 		$("body").on("click", ".remove-question", function(){
 			var questionId = ($(this).attr("id")).split("_")[2];
 			$("#detail_question_selected_"+questionId).fadeOut(function () {
 				$("#detail_question_selected_"+questionId).remove();
+				fixPositionFooter();
+			});
+			return false;
+		});
+
+		$("body").on("click", ".remove-member", function(){
+			var memberId = ($(this).attr("id")).split("_")[2];
+			$("#detail_member_selected_"+memberId).fadeOut(function () {
+				$("#detail_member_selected_"+memberId).remove();
 				fixPositionFooter();
 			});
 			return false;
@@ -121,7 +141,7 @@
 				alert("The duration must be integer");
 			}
 
-			if (!$("input[name='member_id']").val()) {
+			if ($(".detail_member_selected").length == 0) {
 				alert("You must select member");
 				return;
 			}

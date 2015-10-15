@@ -8,21 +8,21 @@
 
 {% block body_base %}
 	<div class="row">
-		<form id="code-form" method="POST" action="{{ request.path }}">
+		<form id="code-form">
 			{% csrf_token %}
 			<input type="hidden" name="code_id" value="{{ doc_code.id }}">
 			<div class="col-md-12" style="padding-left: 0px; padding-right: 0px">
 				<div class="form-group col-md-12">
 					<label>Code name</label>
-					<input type="text" class="form-control" name="code_name" placeholder="Code name..." value="{{ doc_code.name }}">
+					<input disabled type="text" class="form-control" name="code_name" placeholder="Code name..." value="{{ doc_code.name }}">
 				</div>
 				<div class="form-group col-md-12">
 					<label>Point</label>
-					<input type="text" class="form-control" name="point" placeholder="Point..."  value="{{ doc_code.point }}">
+					<input disabled type="text" class="form-control" name="point" placeholder="Point..."  value="{{ doc_code.point }}">
 				</div>
 				<div class="form-group col-md-12">
 					<label>Duration by days</label>
-					<input type="text" class="form-control" name="duration" placeholder="Duration by days..."  value="{{ doc_code.time }}">
+					<input disabled type="text" class="form-control" name="duration" placeholder="Duration by days..."  value="{{ doc_code.time }}">
 				</div>
 				<div class="form-group col-md-6">
 					<label>Member</label>
@@ -30,13 +30,13 @@
 				</div>
 				<div class="form-group col-md-6">
 					<label>Questions</label>
-					<input id="search_question" type="text" placeholder="Question..." class="nav-search-input form-control" name="search_question" autocomplete="off" data-provide="typeahead" data-items="10">
+					<input disabled type="text" class="form-control" placeholder="Question..."  value="">
 					<div id="question_selected" class="col-md-12" style="padding: 0px">
 						{% for c in doc_code.question_id %}
 							{% for q in questions %}
 								{% if c == q.id %}
 									<span id="detail_question_selected_{{ q.id }}" class="detail_question_selected col-md-12" style="margin-top:10px; padding: 0px">
-										<span><strong>Question:</strong> {{ q.value.content }}</span> <a id="remove_question_{{ q.id }}" class="remove-question" type="button" href="#" title="Remove"><i class="glyphicon glyphicon-trash"></i></a>
+										<span><strong>Question:</strong> {{ q.value.content }}</span>
 										<input type="hidden" name="question_select" class="form-control question_select" value="{{ q.id }}">
 									</span>
 								{% endif %}
@@ -45,7 +45,6 @@
 					</div>
 				</div>
 				<div class="form-group col-md-12">
-					<a class="btn btn-primary pull-right" id="submit"><i class="glyphicon glyphicon-arrow-up"></i> Submit</a>
 					<button id="delete_code" style="margin-right: 5px" type="button" class="btn btn-danger pull-right"><i class="glyphicon glyphicon-trash"></i> Delete</button>
 					<a href="{% url 'list_code' %}" style="margin-right: 5px" type="button" class="btn btn-default pull-left"><i class="glyphicon glyphicon-arrow-left"></i> Back to list</a>
 					<span id="loading_edit" style="display: none; margin-right: 10px" class="pull-right">
@@ -59,79 +58,7 @@
 {% endblock %}
 
 {% block extra_script %}
-	<script src="{% static "bootstrap/js/bootstrap3-typeahead.js" %}"></script>
 	<script>
-		var questions = [];
-
-		{% for m in questions %}
-			questions.push({id: "{{ m.id }}", name: "{{ m.value.content }}"});
-		{% endfor %}
-
-		$('#search_question').typeahead({
-			source: questions,
-			updater: function(item){
-				if ($("#detail_question_selected_"+item.id).length <= 0){
-					$(_createQuestionDetail(item)).appendTo($("#question_selected"));
-					fixPositionFooter();
-				}
-				return "";
-			}
-		});
-
-		function _createQuestionDetail(item) {
-			var html = ""
-			html += '<span id="detail_question_selected_'+item.id+'" class="detail_question_selected col-md-12" style="margin-top:10px; padding: 0px">';
-			html += '<span><strong>Question:</strong> '+item.name+'</span> <a id="remove_question_'+item.id+'" class="remove-question" type="button" href="#" title="Remove"><i class="glyphicon glyphicon-trash"></i></a>'
-			html += '<input type="hidden" name="question_select" class="form-control question_select" value="'+item.id+'">';
-			html += '</span>';
-			return html;
-		}
-
-		$("body").on("click", ".remove-question", function(){
-			var questionId = ($(this).attr("id")).split("_")[2];
-			$("#detail_question_selected_"+questionId).fadeOut(function () {
-				$("#detail_question_selected_"+questionId).remove();
-				fixPositionFooter();
-			});
-			return false;
-		});
-
-		$("#submit").click(function(){
-			if (!$("input[name='code_name']").val()) {
-				alert("You must input code name");
-				return;
-			}
-
-			if (!$("input[name='point']").val()) {
-				alert("You must input point");
-				return;
-			}
-
-			if (isNaN($("input[name='point']").val())){
-				alert("The point must be integer");
-				return false;
-			}
-
-			if (!$("input[name='duration']").val()) {
-				alert("You must input duration");
-				return;
-			}
-
-			if (isNaN($("input[name='duration']").val())){
-				alert("The duration must be integer");
-			}
-
-			if ($(".detail_question_selected").length == 0) {
-				alert("You must select question");
-				return;
-			}
-
-			$("#loading_edit").show();
-			$("#submit").addClass("disabled");
-			$("#delete_code").addClass("disabled");
-			$("#code-form").submit();
-		});
-
 		$("#delete_code").click(function(){
 			if (confirm("Do you want to remove this code?")) {
 				var codeId = $("input[name='code_id']").val();

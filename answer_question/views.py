@@ -286,14 +286,13 @@ class ListCode(ListView):
 			connection = pycouchdb.ConnectCouchdb()
 			codes = connection.query_doc(pycouchdb.MAP_FUNCTION_COMMON % ("table", "code"))
 
-			for c in codes:
+			for index, c in enumerate(codes):
 				try:
 					username = connection.get_doc(c["value"]["user_id"])
-					name = username["name"]
+					c["value"].update({"username": username["name"]})
 				except Exception, e:
 					logging.error(str(e))
-					name = "Undefined"
-				c["value"].update({"username": name})
+					c["value"].update({"username": ""})
 
 			queryset = codes
 		except Exception, e:
@@ -330,8 +329,9 @@ class QACodeAdd(TemplateView, JSONResponseMixin):
 				messages.add_message(self.request, messages.ERROR, MESSAGE['ERROR_CONNECT'])
 				return HttpResponse(status=500)
 
-			import time
-			hour_now = ((time.mktime(datetime.datetime.now().timetuple()))/3600)/3600
+			import datetime
+			now = datetime.datetime.now()
+			time_now = now.year*8760 + now.month*720 + now.day*24 + now.hour
 
 			for member in filter(None, request.POST.getlist('member_select')):
 				connection.save_doc({
@@ -339,7 +339,7 @@ class QACodeAdd(TemplateView, JSONResponseMixin):
 					"user_id": member,
 					"name": request.POST.get("code_name", None),
 					"point": int(request.POST.get("point", None)),
-					"time": int(request.POST.get("duration", None)) + hour_now,
+					"time": int(request.POST.get("duration", None)) + int(time_now),
 					"question_id": filter(None, request.POST.getlist('question_select')),
 					"date": (datetime.datetime.now()).strftime("%d-%m-%Y"),
 					"status": "0"
